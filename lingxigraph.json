@@ -1,0 +1,9 @@
+{
+  "$schema": "https://lingxigraph.dev/schemas/manifest-v1.json",
+  "graphs": {
+    "lingxigraph_dev_task_demo": {
+      "path": "lingxigraph_dev_task_demo.graph:graph",
+      "version": "1.0.0"
+    }
+  }
+}

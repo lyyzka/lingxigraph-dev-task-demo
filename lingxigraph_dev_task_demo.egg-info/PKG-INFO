@@ -1,0 +1,6 @@
+Metadata-Version: 2.4
+Name: lingxigraph_dev_task_demo
+Version: 1.0.0
+Summary: lingxigraph-dev-task-demo — a LingxiGraph multi-agent deployment
+Requires-Python: >=3.11
+Requires-Dist: lingxigraph[server]<3,>=2.0.1
