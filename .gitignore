@@ -7,3 +7,10 @@ build/
 
 # macOS
 .DS_Store
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+data/checkpoints.sqlite
+
+# Python packaging metadata
+*.egg-info/
