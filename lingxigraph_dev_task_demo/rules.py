@@ -1,8 +1,10 @@
-"""Deterministic text-processing rules for the demo."""
+"""Deterministic text-processing and routing rules for the demo."""
 
 from __future__ import annotations
 
 import re
+
+from lingxigraph_dev_task_demo.state import TaskType
 
 
 DEFAULT_PLAN_STEPS = [
@@ -41,10 +43,82 @@ OPERATE_PLAN_STEPS = [
 ]
 
 
+TASK_TYPE_MARKERS: dict[TaskType, tuple[str, ...]] = {
+    "operate": (
+        "部署",
+        "删除",
+        "重启",
+        "迁移",
+        "推送",
+        "发布",
+        "回滚",
+    ),
+    "debug": (
+        "500",
+        "报错",
+        "异常",
+        "失败",
+        "无法运行",
+        "错误",
+        "超时",
+        "修复",
+        "排查",
+    ),
+    "implement": (
+        "实现",
+        "开发",
+        "创建",
+        "添加",
+        "编写",
+        "新增",
+    ),
+    "explain": (
+        "解释",
+        "原理",
+        "区别",
+        "为什么",
+        "介绍",
+        "说明",
+    ),
+    "unknown": (),
+}
+
+
+# 当一个请求同时包含多类关键词时，按此固定顺序选择。
+#
+# operate 放在最前面，是一种保守路由策略：
+# 带有部署、删除或重启等操作意图的请求，不应因为同时出现
+# “失败”或“为什么”等词而被其他类别覆盖。
+ROUTE_PRIORITY: tuple[TaskType, ...] = (
+    "operate",
+    "debug",
+    "implement",
+    "explain",
+)
+
+
 def normalize_whitespace(text: str) -> str:
     """Trim leading/trailing whitespace and collapse repeated whitespace."""
 
     return re.sub(r"\s+", " ", text).strip()
+
+
+def classify_task_type(text: str) -> TaskType:
+    """Classify a request using deterministic keyword rules.
+
+    The function has no randomness, external model calls, time dependency,
+    or mutable global state. The same text therefore always produces the
+    same task type.
+    """
+
+    candidate = normalize_whitespace(text).lower()
+
+    for task_type in ROUTE_PRIORITY:
+        markers = TASK_TYPE_MARKERS[task_type]
+        if any(marker.lower() in candidate for marker in markers):
+            return task_type
+
+    return "unknown"
 
 
 def extract_keywords(text: str) -> list[str]:
@@ -57,44 +131,56 @@ def extract_keywords(text: str) -> list[str]:
         "报错",
         "异常",
         "失败",
+        "错误",
+        "超时",
+        "修复",
+        "排查",
         "实现",
         "开发",
         "创建",
         "添加",
+        "编写",
+        "新增",
         "解释",
         "原理",
         "区别",
         "为什么",
+        "介绍",
+        "说明",
         "部署",
         "删除",
         "重启",
         "迁移",
         "推送",
+        "发布",
+        "回滚",
     ]
 
-    return [keyword for keyword in keyword_groups if keyword.lower() in text.lower()]
+    lowered_text = text.lower()
+
+    return [
+        keyword
+        for keyword in keyword_groups
+        if keyword.lower() in lowered_text
+    ]
 
 
 def build_task_structure(text: str) -> tuple[str, list[str]]:
-    """Return a deterministic analysis summary and plan steps."""
+    """Return a deterministic Stage 1 analysis summary and plan steps."""
 
     keywords = extract_keywords(text)
+    task_type = classify_task_type(text)
 
-    debug_markers = ("500", "报错", "异常", "失败", "无法运行", "错误")
-    implement_markers = ("实现", "开发", "创建", "添加")
-    explain_markers = ("解释", "原理", "区别", "为什么")
-    operate_markers = ("部署", "删除", "重启", "迁移", "推送")
-
-    if any(marker in text for marker in debug_markers):
+    if task_type == "debug":
         category = "故障排查"
         plan_steps = DEBUG_PLAN_STEPS
-    elif any(marker in text for marker in implement_markers):
+    elif task_type == "implement":
         category = "功能实现"
         plan_steps = IMPLEMENT_PLAN_STEPS
-    elif any(marker in text for marker in explain_markers):
+    elif task_type == "explain":
         category = "概念解释"
         plan_steps = EXPLAIN_PLAN_STEPS
-    elif any(marker in text for marker in operate_markers):
+    elif task_type == "operate":
         category = "环境操作"
         plan_steps = OPERATE_PLAN_STEPS
     else:

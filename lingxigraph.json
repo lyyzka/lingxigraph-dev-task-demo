@@ -3,7 +3,7 @@
   "graphs": {
     "lingxigraph_dev_task_demo": {
       "path": "lingxigraph_dev_task_demo.graph:graph",
-      "version": "0.1.0"
+      "version": "0.2.0"
     }
   }
 }

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from lingxigraph_dev_task_demo.graph import graph
+from lingxigraph_dev_task_demo.graphs.stage1_pipeline import graph
 
 
 def test_normalizes_whitespace_and_preserves_original_request() -> None:
